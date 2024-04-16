@@ -13,18 +13,11 @@ const App: React.FC = () => {
 		);
 	};
 	return (
-		<>
-			<h1>
+		<main className="bg-slate-950 min-h-screen">
+			<h1 className="text-white text-5xl text-center py-16">
 				Displaying
 				<button
-					style={{
-						padding: "4px 10px",
-						margin: "10px",
-						backgroundColor: "#DFFF00",
-						color: "#242424",
-						textDecoration: "underline",
-						borderRadius: "5px",
-					}}
+					className="py-2 px-2 m-2 bg-slate-200 text-slate-800 underline rounded hover:bg-slate-100"
 					onClick={() => changeChartType()}
 				>
 					{chartType}
@@ -32,7 +25,7 @@ const App: React.FC = () => {
 				Chart
 			</h1>
 			<Dashboard chartType={chartType} />
-		</>
+		</main>
 	);
 };
 

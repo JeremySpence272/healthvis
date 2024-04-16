@@ -15,6 +15,7 @@
 	"main": "source/app.ts",
 	"scripts": {
 		"dev": "nodemon source/app.ts",
-		"build": "rm -rf build/ && prettier --write source/ && tsc"
+		"build": "rm -rf build/ && prettier --write source/ && tsc",
+		"start": "nodemon ./build/app.js"
 	}
 }

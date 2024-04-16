@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import sqlite3, { OPEN_READONLY } from "sqlite3";
 
 const db: sqlite3.Database = new sqlite3.Database(
-	"../data/database.db",
+	"./data/daily.db",
 	OPEN_READONLY
 );
 const app = express();
@@ -41,7 +41,7 @@ const getQuery = (interval: Interval): string => {
 			break;
 	}
 
-	return `SELECT ${groupBy} AS date, ROUND(AVG(weight),2) AS plot, COUNT(*) as count FROM weight GROUP BY ${groupBy} ORDER BY date ASC`;
+	return `SELECT ${groupBy} AS date, ROUND(AVG(weight),2) AS weight FROM weight GROUP BY ${groupBy} ORDER BY date ASC`;
 };
 app.get("/data/weight", (req: Request, res: Response) => {
 	const interval: Interval = req.query.interval as Interval;
@@ -79,7 +79,7 @@ const getSleepQuery = (interval: Interval, dataType: SleepOptions): string => {
 			break;
 	}
 
-	return `SELECT ${groupBy} AS date, ROUND(AVG(${dataType}),0) AS plot, COUNT(*) as count FROM sleep GROUP BY ${groupBy} ORDER BY date ASC`;
+	return `SELECT ${groupBy} AS date, ROUND(AVG(${dataType}),0) AS minutes FROM sleep GROUP BY ${groupBy} ORDER BY date ASC`;
 };
 
 app.get("/data/sleep", (req: Request, res: Response) => {

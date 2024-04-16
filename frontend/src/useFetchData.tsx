@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChartType, ControlsType, Record } from "./types";
+import { ChartType, ControlsType, DataPoint } from "./types";
 import axios, { AxiosResponse } from "axios";
 
 interface UseFetchDataProps {
@@ -8,15 +8,10 @@ interface UseFetchDataProps {
 }
 
 type UseFetchDataResult = {
-	data: Record[] | null;
+	data: DataPoint[] | null;
 	isPending: boolean;
 	error: Error | null;
 };
-
-const mapToRecords = (data: any): Record => ({
-	date: data.date,
-	plot: Number(data.plot),
-});
 
 const ENDPOINT: string = "http://localhost:3000/data";
 
@@ -24,7 +19,7 @@ const useFetchData = ({
 	chartType,
 	controls,
 }: UseFetchDataProps): UseFetchDataResult => {
-	const [data, setData] = useState<Record[] | null>(null);
+	const [data, setData] = useState<DataPoint[] | null>(null);
 	const [isPending, setIsPending] = useState<boolean>(false);
 	const [error, setError] = useState<Error | null>(null);
 
@@ -44,7 +39,7 @@ const useFetchData = ({
 			setIsPending(true);
 			try {
 				const response: AxiosResponse = await axios.get(queryURL());
-				const records: Record[] = response.data.map(mapToRecords);
+				const records: DataPoint[] = response.data;
 				setData(records);
 				setIsPending(false);
 			} catch (err) {

@@ -1,6 +1,6 @@
-export type Record = {
+export type DataPoint = {
 	date: string;
-	plot: number;
+	[key: string]: string | number;
 };
 
 export type ControlsType = {

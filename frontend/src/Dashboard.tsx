@@ -1,8 +1,8 @@
-import ChartElement from "./ChartElement";
 import { useEffect, useState } from "react";
 import { ControlsType, dataTypeOptions, ChartType } from "./types";
 import Controls from "./Controls";
 import useFetchData from "./useFetchData";
+import ChartComponent from "./ChartComponent";
 
 interface DashboardProps {
 	chartType: ChartType;
@@ -23,16 +23,6 @@ const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 		}));
 	}, [chartType]);
 
-	function getLabels(): string[] {
-		if (!data) return [];
-		return data.map((data) => data.date);
-	}
-
-	const getData = (): number[] => {
-		if (!data) return [];
-		return data.map((data) => data.plot);
-	};
-
 	const handleControlChange = (controls: ControlsType): void => {
 		setControls(controls);
 	};
@@ -42,12 +32,16 @@ const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 
 	return (
 		<>
-			<ChartElement labels={getLabels()} dataset={getData()} />
-			<Controls
-				chartType={chartType}
-				currentControls={controls}
-				handleControlChange={handleControlChange}
-			/>
+			{data && (
+				<section className="rounded bg-slate-200 w-1/2 mx-auto p-8 flex flex-col">
+					<ChartComponent dataset={data} />
+					<Controls
+						chartType={chartType}
+						currentControls={controls}
+						handleControlChange={handleControlChange}
+					/>
+				</section>
+			)}
 		</>
 	);
 };
