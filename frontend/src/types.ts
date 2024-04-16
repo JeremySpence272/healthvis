@@ -4,9 +4,17 @@ export type DataPoint = {
 };
 
 export type ControlsType = {
-	interval: "daily" | "weekly" | "monthly";
+	interval: IntervalOptions;
+	startDate?: Date;
+	endDate?: Date;
 	dataType?: string;
 };
+
+export enum IntervalOptions {
+	daily = "daily",
+	weekly = "weekly",
+	monthly = "monthly",
+}
 
 type DataTypeOptions = {
 	[category: string]: string[];
@@ -16,7 +24,6 @@ export const dataTypeOptions: DataTypeOptions = {
 	sleep: ["total", "deep", "rem", "core", "awake"],
 };
 
-// change name of this
 export enum ChartType {
 	weight = "weight",
 	sleep = "sleep",

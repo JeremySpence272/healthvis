@@ -28,14 +28,18 @@ const useFetchData = ({
 		const params = new URLSearchParams();
 
 		Object.entries(controls).forEach(([key, val]) => {
-			if (val) params.append(key, val);
+			if (val) {
+				if (typeof val !== "string")
+					params.append(key, val.toISOString().slice(0, 10));
+				else params.append(key, val);
+			}
 		});
 		return `${base}?${params.toString()}`;
 	};
 
 	useEffect(() => {
 		const fetchData = async () => {
-			console.log(`fetching ${chartType} data from api`);
+			console.log(`CURRENT QUERY URL = ${queryURL()}`);
 			setIsPending(true);
 			try {
 				const response: AxiosResponse = await axios.get(queryURL());

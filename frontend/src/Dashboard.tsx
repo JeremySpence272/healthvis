@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { ControlsType, dataTypeOptions, ChartType } from "./types";
+import {
+	ControlsType,
+	dataTypeOptions,
+	ChartType,
+	IntervalOptions,
+} from "./types";
 import Controls from "./Controls";
 import useFetchData from "./useFetchData";
 import ChartComponent from "./ChartComponent";
@@ -9,7 +14,9 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
-	const [controls, setControls] = useState<ControlsType>({ interval: "daily" });
+	const [controls, setControls] = useState<ControlsType>({
+		interval: IntervalOptions.daily,
+	});
 	const { data, isPending, error } = useFetchData({ chartType, controls });
 
 	// probably need to update this later. this is a way of giving the dataType property of the controls an initial value when chartType is changed
@@ -24,6 +31,7 @@ const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 	}, [chartType]);
 
 	const handleControlChange = (controls: ControlsType): void => {
+		console.log("===CONTROLS CHANGED");
 		setControls(controls);
 	};
 
@@ -32,15 +40,29 @@ const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 
 	return (
 		<>
-			{data && (
-				<section className="rounded bg-slate-200 w-1/2 mx-auto p-8 flex flex-col">
-					<ChartComponent dataset={data} />
-					<Controls
-						chartType={chartType}
-						currentControls={controls}
-						handleControlChange={handleControlChange}
-					/>
-				</section>
+			{data ? (
+				<div className="w-2/3 flex flex-row gap-10 mx-auto">
+					<section className="rounded bg-slate-200 flex-grow p-8">
+						{data.length > 0 ? (
+							<ChartComponent dataset={data} />
+						) : (
+							<p className="text-center mx-auto text-xl text-red-600">
+								No Data To Show...
+							</p>
+						)}
+					</section>
+					<section className="rounded bg-slate-200 w-1/3 p-8">
+						<Controls
+							chartType={chartType}
+							currentControls={controls}
+							handleControlChange={handleControlChange}
+						/>
+					</section>
+				</div>
+			) : (
+				<p className="text-center mx-auto text-xl text-red-600">
+					Huh what happened ????
+				</p>
 			)}
 		</>
 	);

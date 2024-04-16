@@ -43,7 +43,7 @@ app.use((req, res, next) => {
     }
     next();
 });
-const getQuery = (interval) => {
+const getQuery = (interval, dateRange) => {
     let groupBy = "";
     switch (interval) {
         case "weekly":
@@ -56,11 +56,21 @@ const getQuery = (interval) => {
             groupBy = `date`;
             break;
     }
-    return `SELECT ${groupBy} AS date, ROUND(AVG(weight),2) AS weight FROM weight GROUP BY ${groupBy} ORDER BY date ASC`;
+    let queryStr = `SELECT ${groupBy} AS date, ROUND(AVG(weight),2) AS weight FROM weight`;
+    if (dateRange.end && dateRange.start) {
+        queryStr += ` WHERE date >= '${dateRange.start}' AND date <= '${dateRange.end}'`;
+    }
+    queryStr += ` GROUP BY ${groupBy} ORDER BY date ASC`;
+    return queryStr;
 };
 app.get("/data/weight", (req, res) => {
+    var _a, _b;
     const interval = req.query.interval;
-    const query = getQuery(interval);
+    const dateRange = {
+        start: (_a = req.query.startDate) !== null && _a !== void 0 ? _a : undefined,
+        end: (_b = req.query.endDate) !== null && _b !== void 0 ? _b : undefined,
+    };
+    const query = getQuery(interval, dateRange);
     if (!["daily", "weekly", "monthly"].includes(interval)) {
         return res.status(400).json({ error: "invalid interval param" });
     }
@@ -79,7 +89,7 @@ var SleepOptions;
     SleepOptions["Core"] = "core";
     SleepOptions["Awake"] = "awake";
 })(SleepOptions || (SleepOptions = {}));
-const getSleepQuery = (interval, dataType) => {
+const getSleepQuery = (interval, dataType, dateRange) => {
     let groupBy = "";
     switch (interval) {
         case "weekly":
@@ -92,12 +102,22 @@ const getSleepQuery = (interval, dataType) => {
             groupBy = `date`;
             break;
     }
-    return `SELECT ${groupBy} AS date, ROUND(AVG(${dataType}),0) AS minutes FROM sleep GROUP BY ${groupBy} ORDER BY date ASC`;
+    let queryStr = `SELECT ${groupBy} AS date, ROUND(AVG(${dataType}),0) AS minutes FROM sleep`;
+    if (dateRange.end && dateRange.start) {
+        queryStr += ` WHERE date >= '${dateRange.start}' AND date <= '${dateRange.end}'`;
+    }
+    queryStr += ` GROUP BY ${groupBy} ORDER BY date ASC`;
+    return queryStr;
 };
 app.get("/data/sleep", (req, res) => {
+    var _a, _b;
     const interval = req.query.interval;
     const dataType = req.query.dataType;
-    const query = getSleepQuery(interval, dataType);
+    const dateRange = {
+        start: (_a = req.query.startDate) !== null && _a !== void 0 ? _a : undefined,
+        end: (_b = req.query.endDate) !== null && _b !== void 0 ? _b : undefined,
+    };
+    const query = getSleepQuery(interval, dataType, dateRange);
     db.all(query, (err, rows) => {
         if (err)
             res.status(500).json({ err: err.message });

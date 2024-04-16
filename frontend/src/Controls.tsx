@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { ControlsType, dataTypeOptions } from "./types";
+import { ControlsType, IntervalOptions, dataTypeOptions } from "./types";
+import { DateRangePickerValue, Select, SelectItem } from "@tremor/react";
+import { DateRangePicker } from "@tremor/react";
 
 interface ControlsProps {
 	chartType: string;
@@ -19,50 +21,77 @@ const Controls: React.FC<ControlsProps> = ({
 		handleControlChange(localControls);
 	}, [localControls]);
 
-	const updateInterval = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+	const handleIntervalUpdate = (val: string): void => {
 		setLocalControls({
 			...localControls,
-			interval: e.target.value as ControlsType["interval"],
+			interval: IntervalOptions[val as keyof typeof IntervalOptions],
+		});
+	};
+	const handleDataTypeUpdate = (val: string): void => {
+		setLocalControls({
+			...localControls,
+			dataType: val,
 		});
 	};
 
-	const updateDataType = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+	const handleDateUpdate = (val: DateRangePickerValue) => {
+		const sDate = val.from!;
+		const eDate = val.to!;
 		setLocalControls({
 			...localControls,
-			dataType: e.target.value as ControlsType["dataType"],
+			startDate: sDate,
+			endDate: eDate,
 		});
-		handleControlChange(localControls);
 	};
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-			}}
-		>
-			<select
-				name="interval"
+		<>
+			<label htmlFor="interval" className="text-sm">
+				Select Interval
+			</label>
+			<Select
+				id="interval"
 				value={localControls.interval}
-				onChange={updateInterval}
+				onValueChange={handleIntervalUpdate}
+				className="mb-4 mt-1"
 			>
-				<option value="daily">Daily</option>
-				<option value="weekly">Weekly</option>
-				<option value="monthly">Monthly</option>
-			</select>
-			{dataTypeOptions[chartType] && (
-				<select
-					name="dataType"
-					value={localControls.dataType}
-					onChange={updateDataType}
-				>
-					{dataTypeOptions[chartType].map((option) => (
-						<option key={option} value={option}>
-							{option.toUpperCase()}
-						</option>
-					))}
-				</select>
+				{(
+					Object.keys(IntervalOptions) as Array<keyof typeof IntervalOptions>
+				).map((key) => (
+					<SelectItem key={key} value={key}>
+						{key[0].toUpperCase() + key.slice(1)}
+					</SelectItem>
+				))}
+			</Select>
+			{localControls.dataType && dataTypeOptions[chartType] && (
+				<>
+					<label htmlFor="dataType" className="text-sm">
+						Select Data Type
+					</label>
+					<Select
+						id="dataType"
+						value={localControls.dataType}
+						onValueChange={handleDataTypeUpdate}
+						className="mb-4 mt-1"
+					>
+						{dataTypeOptions[chartType].map((option) => (
+							<SelectItem key={option} value={option}>
+								{option[0].toUpperCase() + option.slice(1)}
+							</SelectItem>
+						))}
+					</Select>
+				</>
 			)}
-		</form>
+			<label htmlFor="dateRange" className="text-sm">
+				Select Date Range
+			</label>
+			<DateRangePicker
+				id="dateRange"
+				enableSelect={true}
+				onValueChange={handleDateUpdate}
+				value={{ from: localControls.startDate, to: localControls.endDate }}
+			/>
+		</>
 	);
 };
 
