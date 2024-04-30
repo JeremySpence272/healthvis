@@ -1,9 +1,15 @@
 import { useState } from "react";
 import Dashboard from "./Dashboard";
 import { ChartType } from "./types";
+import UploadComponent from "./UploadComponent";
 
 const App: React.FC = () => {
-	const chartOptions = [ChartType.weight, ChartType.sleep];
+	const chartOptions = [
+		ChartType.weight,
+		ChartType.sleep,
+		ChartType.energy,
+		ChartType.heart,
+	];
 
 	const [chartType, setChartType] = useState<ChartType>(ChartType.weight);
 
@@ -25,6 +31,7 @@ const App: React.FC = () => {
 				Chart
 			</h1>
 			<Dashboard chartType={chartType} />
+			<UploadComponent />
 		</main>
 	);
 };

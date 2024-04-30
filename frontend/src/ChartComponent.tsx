@@ -24,6 +24,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 			colors={["indigo", "red"]}
 			yAxisWidth={40}
 			autoMinValue={true}
+			connectNulls={true}
 		/>
 	);
 };

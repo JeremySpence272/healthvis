@@ -16,6 +16,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 	const [controls, setControls] = useState<ControlsType>({
 		interval: IntervalOptions.daily,
+		comparing: false,
 	});
 	const { data, isPending, error } = useFetchData({ chartType, controls });
 
@@ -31,7 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ chartType }) => {
 	}, [chartType]);
 
 	const handleControlChange = (controls: ControlsType): void => {
-		console.log("===CONTROLS CHANGED");
+		console.log("===CONTROLS CHANGED===");
 		setControls(controls);
 	};
 

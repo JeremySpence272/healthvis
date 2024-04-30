@@ -18,17 +18,26 @@ const heartConfig: DataConfig = {
             restingAvg TEXT
         )`,
 	querySQL: `
-        SELECT 
-            SUBSTR(creationDate, 1, 10) AS date,
-            AVG(CAST(value AS FLOAT)) AS average,
-            MIN(CAST(value AS FLOAT)) AS minimum,
-            MAX(CAST(value AS FLOAT)) AS maximum,
-            AVG(CAST(value AS FLOAT)) AS restingAvg
+    SELECT SUBSTR(creationDate, 1, 10) AS date,
+    AVG(CASE
+            WHEN TYPE = 'HKQuantityTypeIdentifierHeartRate' THEN CAST(value AS FLOAT)
+        END) AS average,
+    MIN(CASE
+            WHEN TYPE = 'HKQuantityTypeIdentifierHeartRate' THEN CAST(value AS FLOAT)
+        END) AS minimum,
+    MAX(CASE
+            WHEN TYPE = 'HKQuantityTypeIdentifierHeartRate' THEN CAST(value AS FLOAT)
+        END) AS maximum,
+    AVG(CASE
+            WHEN TYPE = 'HKQuantityTypeIdentifierRestingHeartRate' THEN CAST(value AS FLOAT)
+        END) AS restingAvg
         FROM 
-            all_records
+            records
         WHERE 
-            type IN ('HKQuantityTypeIdentifierHeartRate', 'HKQuantityTypeIdentifierRestingHeartRate')
-            AND sourceName LIKE '%Watch%'
+            sourceName LIKE '%Watch%'
+            AND date >= '2023-10-15' AND date < '${new Date()
+							.toISOString()
+							.slice(0, 10)}'
         GROUP BY 
             SUBSTR(creationDate, 1, 10)`,
 	insertSQL: `
@@ -59,9 +68,12 @@ const energyConfig: DataConfig = {
             SUM(CASE WHEN type = 'HKQuantityTypeIdentifierActiveEnergyBurned' THEN CAST(value AS FLOAT) ELSE 0 END) AS active, 
             SUM(CASE WHEN type = 'HKQuantityTypeIdentifierBasalEnergyBurned' THEN CAST(value AS FLOAT) ELSE 0 END) AS basal
         FROM 
-            all_records
+            records
         WHERE 
             sourceName LIKE '%Watch%'
+            AND date >= '2023-10-15' AND date < '${new Date()
+							.toISOString()
+							.slice(0, 10)}'
         GROUP BY 
             SUBSTR(endDate, 1, 10)`,
 	insertSQL: `
@@ -88,10 +100,10 @@ const weightConfig: DataConfig = {
             SUBSTR(endDate, 1, 10) AS date, 
             value AS weight
         FROM 
-            all_records
+            records
         WHERE 
             type = 'HKQuantityTypeIdentifierBodyMass' 
-            AND SUBSTR(creationDate, 1, 10) = '2024-04-08'
+            AND SUBSTR(creationDate, 1, 10) > '2024-04-01'
         GROUP BY 
             SUBSTR(endDate, 1, 10)`,
 	insertSQL: `
@@ -116,9 +128,12 @@ const sleepConfig = {
         )`,
 	querySQL: `
         SELECT * 
-        FROM all_records 
+        FROM records 
         WHERE type = 'HKCategoryTypeIdentifierSleepAnalysis' 
         AND sourceName LIKE '%Watch%' 
+        AND creationDate > '2023-10-15' AND creationDate < '${new Date()
+					.toISOString()
+					.slice(0, 10)}'
         ORDER BY startDate ASC`,
 	insertSQL: `
         INSERT INTO sleep (date, asleep_time, woke_time, total, deep, rem, core, awake)

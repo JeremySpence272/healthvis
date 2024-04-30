@@ -1,12 +1,5 @@
-import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
-// const {
-// 	heartConfig,
-// 	sleepConfig,
-// 	energyConfig,
-// 	weightConfig,
-// } = require("./dataConfigs");
-
+import sqlite3, { Database, OPEN_READWRITE } from "sqlite3";
+import path from "path";
 import {
 	sleepConfig,
 	DataConfig,
@@ -17,51 +10,78 @@ import {
 
 const { getNights } = require("../utils/sleepUtils");
 
-async function processData(config: DataConfig) {
-	let db: Database | null = null;
-	let daily_db: Database | null = null;
+const processData = async (config: DataConfig, db: Database) => {
+	console.log(`processing data for ${config.tableName}`);
 	try {
-		db = await open({
-			filename: "../../data/database.db",
-			driver: sqlite3.Database,
+		await new Promise<void>((resolve, reject) => {
+			db!.run(config.createTableSQL, (err) => {
+				if (err) reject(err);
+				else resolve();
+			});
 		});
 
-		daily_db = await open({
-			filename: "../../data/daily.db",
-			driver: sqlite3.Database,
+		let rows: any[] = await new Promise<any[]>((resolve, reject) => {
+			db.all(config.querySQL, (err, rows) => {
+				if (err) reject(err);
+				else resolve(rows);
+			});
 		});
 
-		await daily_db.run(config.createTableSQL); // create new table if not exists
-		let rows: any[] = await db.all(config.querySQL); // read from all records
 		if (config.tableName === "sleep") {
-			// additional logic needed for sleep data
 			rows = getNights(rows);
 		}
 
 		const insertPromises: Promise<void>[] = rows.map(
 			(record) =>
-				daily_db!
-					.run(config.insertSQL, config.formatRecord(record))
-					.then(() => {}) // push records to new database don't need to return anythign
+				new Promise<void>((resolve, reject) => {
+					db!.run(config.insertSQL, config.formatRecord(record), (err) => {
+						if (err) reject(err);
+						else resolve();
+					});
+				})
 		);
 
 		await Promise.all(insertPromises); // wait for records to be pushed
 	} catch (err) {
 		console.error(`err writing to table ${config.tableName}:`, err);
-	} finally {
-		if (db) {
-			await db.close(); // close when done
-			await daily_db?.close();
-		}
-	}
-}
-
-// can fill multiple tables
-const fillTables = async (configs: DataConfig[]) => {
-	for (const config of configs) {
-		await processData(config);
 	}
 };
 
-fillTables([heartConfig, energyConfig, weightConfig]);
-//options are [heartConfig, sleepConfig, energyConfig, weightConfig]
+const cleanupDB = async (db: Database) => {
+	await new Promise<void>((resolve, reject) => {
+		db!.run(
+			`DROP TABLE IF EXISTS records;
+		`,
+			(err) => {
+				if (err) reject(err);
+				else resolve();
+			}
+		);
+	});
+};
+
+const dbFilePath = path.join(
+	__dirname,
+	"..",
+	"..",
+	"upload-data",
+	"records.db"
+);
+
+// can fill multiple tables
+export const fillTables = async () => {
+	const db = new sqlite3.Database(dbFilePath, OPEN_READWRITE);
+	const configs: DataConfig[] = [
+		heartConfig,
+		energyConfig,
+		weightConfig,
+		sleepConfig,
+	];
+	for (const config of configs) {
+		await processData(config, db);
+	}
+
+	console.log("we done hea cleanup time");
+	await cleanupDB(db);
+	console.log("fresh and clean");
+};
